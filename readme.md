@@ -101,9 +101,7 @@ uvicorn final_api:app --host 0.0.0.0 --port 8000
 - Deploy & test the API!
 
 ### **2️⃣ Render API URL**
-Replace `your-api-url` with the actual Render deployment URL:
-```bash
-API_URL = "https://your-api-url.onrender.com/predict/"
+API_URL = "https://finanance-fraud-detection-ml.onrender.com"
 ```
 
 ---
