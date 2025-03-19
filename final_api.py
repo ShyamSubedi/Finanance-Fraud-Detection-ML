@@ -4,7 +4,6 @@ import pandas as pd
 import sqlite3
 import joblib
 import os
-import subprocess
 
 # Load Model
 MODEL_PATH = "fraud_detection_xgboost.pkl"
@@ -22,8 +21,8 @@ app = FastAPI()
 # Database Connection
 DB_PATH = "logs.db"
 conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-c = conn.cursor()
-c.execute('''CREATE TABLE IF NOT EXISTS logs (id INTEGER PRIMARY KEY, input TEXT, prediction INTEGER)''')
+cursor = conn.cursor()
+cursor.execute('''CREATE TABLE IF NOT EXISTS logs (id INTEGER PRIMARY KEY, amount REAL, prediction INTEGER)''')
 conn.commit()
 
 @app.get("/")
@@ -33,22 +32,36 @@ def home():
 @app.post("/predict/")
 def predict(data: dict):
     try:
-        # Define required features
-        features = ["step", "amount", "isFlaggedFraud", "isMerchant", "amount_ratio", "type_encoded"]
+        # Extract amount from request
+        amount = data.get("amount", None)
+        if amount is None:
+            raise HTTPException(status_code=400, detail="Amount is required for prediction.")
 
-        df = pd.DataFrame([data])
-        df = df[features]  # Ensure correct feature order
+        # Automatically set default or calculated feature values
+        transaction_data = {
+            "step": 1,  # Default placeholder value
+            "amount": amount,  # Provided by user
+            "isFlaggedFraud": 0,  # Assume transaction is not flagged initially
+            "isMerchant": 1,  # Assume merchant transaction
+            "amount_ratio": amount / 100000 if amount > 0 else 0.00001,  # Example ratio calculation
+            "type_encoded": 2  # Default transaction type encoding
+        }
 
-        prediction = model.predict(df)
+        # Convert to DataFrame
+        df = pd.DataFrame([transaction_data])
 
-        # Save to database
-        c.execute("INSERT INTO logs (input, prediction) VALUES (?, ?)", (str(data), int(prediction[0])))
+        # Make prediction
+        prediction = model.predict(df)[0]
+
+        # Log request to SQLite
+        cursor.execute("INSERT INTO logs (amount, prediction) VALUES (?, ?)", (amount, int(prediction)))
         conn.commit()
 
-        return {"fraud_prediction": int(prediction[0])}
+        return {"fraud_prediction": int(prediction)}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
 
 if __name__ == "__main__":
-    subprocess.Popen(["uvicorn", "final_api:app", "--host", "0.0.0.0", "--port", "8000"])
+    PORT = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=PORT)
