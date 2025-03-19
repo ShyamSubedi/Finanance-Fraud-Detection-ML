@@ -1,128 +1,69 @@
-# 🚀 Finance Fraud Detection API
+# Fraud Detection API
 
-## 📌 Overview
-This is a **FastAPI**-powered machine learning API for detecting fraudulent transactions. It is built using **XGBoost** and logs predictions in a **SQLite database**. The API is deployed on **Render** and can be accessed externally.
+## Overview
+This API predicts whether a financial transaction is fraudulent based on the transaction amount. The model is deployed on Render and logs transactions to a SQLite database.
 
----
+## Features
+- Accepts transaction **amount** as input.
+- Returns **fraud prediction** (0 = Not Fraud, 1 = Fraud).
+- Logs all transactions to a **SQLite database**.
 
-## ⚙️ Features
-✅ **Fraud Detection**: Predicts if a transaction is fraudulent (1) or not (0).  
-✅ **SQLite Logging**: Each request and prediction is logged for future analysis.  
-✅ **FastAPI**: Lightweight and efficient REST API.  
-✅ **Deployed on Render**: Accessible online via a public endpoint.  
+## API Endpoint
+- **Base URL:** `https://finanance-fraud-detection-ml.onrender.com`
+- **Prediction Endpoint:** `POST /predict/`
 
----
+## How to Use
 
-## 🛠️ Setup Instructions
-
-### **1️⃣ Clone the Repository**
-```bash
-git clone https://github.com/yourusername/fraud-detection-api.git
-cd fraud-detection-api
+### 1. Using Python (Requests Library)
+```python
+import requests
+API_URL = "https://finanance-fraud-detection-ml.onrender.com/predict/"
+test_data = {"amount": 5000}
+response = requests.post(API_URL, json=test_data)
+print(response.json())  # {'fraud_prediction': 0 or 1}
 ```
 
-### **2️⃣ Create a Virtual Environment**
-```bash
-python -m venv venv
-source venv/bin/activate  # For macOS/Linux
-venv\Scripts\activate    # For Windows
-```
+### 2. Using Postman
+1. Open **Postman**.
+2. Select **POST** request.
+3. Enter the API URL:  
+   ```
+   https://finanance-fraud-detection-ml.onrender.com/predict/
+   ```
+4. Go to **Body**, select **raw**, and set format to **JSON**.
+5. Paste the following JSON request:
+   ```json
+   {"amount": 5000}
+   ```
+6. Click **Send**.
+7. The response should be:
+   ```json
+   {"fraud_prediction": 0}
+   ```
+   (or `1` if the transaction is fraudulent)
 
-### **3️⃣ Install Dependencies**
-```bash
-pip install -r requirements.txt
+### 3. Using cURL (Command Line)
+```sh
+curl -X POST "https://finanance-fraud-detection-ml.onrender.com/predict/" \
+     -H "Content-Type: application/json" \
+     -d '{"amount": 5000}'
 ```
-
-### **4️⃣ Run the API Locally**
-```bash
-uvicorn final_api:app --host 0.0.0.0 --port 8000
-```
-
-Once running, open in your browser:
-```
-http://localhost:8000/
-```
-
----
-
-## 🖥️ API Endpoints
-### **🔹 Health Check**
-```http
-GET /
-```
-_Response:_
+Expected Response:
 ```json
-{"message": "Fraud Detection API is running!"}
+{"fraud_prediction": 0}
 ```
 
-### **🔹 Predict Fraudulent Transaction**
-```http
-POST /predict/
-```
-#### **🔹 Request Body (JSON Format):**
-```json
-{
-    "step": 1,
-    "amount": 1000,
-    "isFlaggedFraud": 0,
-    "isMerchant": 1,
-    "amount_ratio": 0.001,
-    "type_encoded": 2
-}
-```
-#### **🔹 Response:**
-```json
-{
-    "fraud_prediction": 0
-}
-```
+## Logging Transactions
+- Every request is **automatically logged** in a SQLite database.
+- Logs can be accessed externally using SQLite.
 
----
+## Deployment
+- Hosted on **Render** (`https://finanance-fraud-detection-ml.onrender.com`).
+- Automatically updates when changes are pushed to **GitHub**.
 
-## 📊 **SQLite Logging**
-All predictions are logged in `logs.db`. To view logs:
-1. Open `logs.db` in **DB Browser for SQLite**.
-2. Run the query:
-```sql
-SELECT * FROM logs;
-```
-3. View all logged API requests and predictions.
+## Contributing
+Feel free to open an issue or submit a pull request if you have suggestions!
 
----
-
-## 🌍 Deployment on Render
-### **1️⃣ Deploying via GitHub**
-- Push the repository to GitHub.
-- Connect GitHub repo to Render.
-- Set the **Start Command** as:
-```bash
-uvicorn final_api:app --host 0.0.0.0 --port 8000
-```
-- Deploy & test the API!
-
-### **2️⃣ Render API URL**
-API_URL = "https://finanance-fraud-detection-ml.onrender.com"
-```
-
----
-
-## 📝 Future Improvements
-✅ Enhance fraud detection model with additional features.  
-✅ Implement authentication & rate limiting.  
-✅ Add frontend for real-time transaction analysis.  
-
----
-
-## 📄 License
-This project is licensed under **MIT License**. Feel free to use and modify.  
-
----
-
-## 🤝 Contributing
-Pull requests are welcome! If you find issues, open an issue in the repository.
-
----
-
-## 📩 Contact
-For any queries, reach out via [GitHub Issues](https://github.com/yourusername/fraud-detection-api/issues).
+## License
+This project is **MIT licensed**.
 
